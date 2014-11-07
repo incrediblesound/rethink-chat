@@ -1,0 +1,40 @@
+<html>
+<head>
+	<title></title>
+	<script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="keys.js"></script>
+	<script type="text/javascript">
+	var PUBNUB_demo = PUBNUB.init({
+		publish_key  : keys.publish_key,
+		subscribe_key: keys.subscribe_key
+	});
+	window.user = prompt('Enter your username:');
+	</script>
+</head>
+<body>
+	<h1>Messages:</h1>
+	<div id="messages"></div>
+	<form id="form" action="/todos" method="post">
+		<input type="text" name="content" id="content">
+		<input type="submit" value="Send" id="send">
+	</form>
+	<script type="text/javascript">
+	var inpt = document.getElementById('content');
+	var form = document.getElementById('form');
+	var send = document.getElementById('send');
+	send.onclick = function(){
+		$.post('/todos', {content: inpt.value, user: window.user});
+	}
+	PUBNUB_demo.subscribe({
+		channel: 'jhe_channel',
+		message: function(msg){
+			if(msg.user !== window.user){
+				var list = document.getElementById('messages');
+				$(list).append('<p><strong>User: </strong>'+msg.user+'<strong> Message: </strong>'+msg.content+'</p>');
+			}
+		}
+	});
+	</script>
+</body>
+</html>
