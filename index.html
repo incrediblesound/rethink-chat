@@ -1,40 +1,51 @@
 <html>
 <head>
-	<title></title>
-	<script src="https://cdn.pubnub.com/pubnub.min.js"></script>
-	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
-	<script src="keys.js"></script>
-	<script type="text/javascript">
-	var PUBNUB_demo = PUBNUB.init({
-		publish_key  : keys.publish_key,
-		subscribe_key: keys.subscribe_key
-	});
-	window.user = prompt('Enter your username:');
-	</script>
+  <title></title>
+  <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+  <script src="keys.js"></script>
+  <script type="text/javascript">
+  var PUBNUB_demo = PUBNUB.init({
+    publish_key  : keys.publish_key,
+    subscribe_key: keys.subscribe_key
+  });
+  window.user = prompt('Enter your username:');
+  </script>
 </head>
 <body>
-	<h1>Messages:</h1>
-	<div id="messages"></div>
-	<form id="form" action="/todos" method="post">
-		<input type="text" name="content" id="content">
-		<input type="submit" value="Send" id="send">
-	</form>
-	<script type="text/javascript">
-	var inpt = document.getElementById('content');
-	var form = document.getElementById('form');
-	var send = document.getElementById('send');
-	send.onclick = function(){
-		$.post('/todos', {content: inpt.value, user: window.user});
-	}
-	PUBNUB_demo.subscribe({
-		channel: 'jhe_channel',
-		message: function(msg){
-			if(msg.user !== window.user){
-				var list = document.getElementById('messages');
-				$(list).append('<p><strong>User: </strong>'+msg.user+'<strong> Message: </strong>'+msg.content+'</p>');
-			}
-		}
-	});
-	</script>
+  <!-- minimal html interface -->
+  <div class="container">
+    <div class="col-md-6">
+      <h2 class="text-center">Incoming Messages</h2>
+      <hr>
+      <div id="messages"></div>
+    </div>
+    <div class="col-md-6">
+      <h2 class="text-center">Send a Message</h2>
+      <hr>
+        <input type="text" class="form-control" name="content" id="content">
+        <input type="submit" class="btn btn-default btn-block" value="Send" id="send">
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  // use ajax to send input field value to the server along with user name
+  var inpt = document.getElementById('content');
+  var send = document.getElementById('send');
+  send.onclick = function(){
+    $.post('/todos', {content: inpt.value, user: window.user});
+  }
+  // listen for messages being saved to the database by other users
+  PUBNUB_demo.subscribe({
+    channel: 'jhe_channel',
+    message: function(msg){
+      if(msg.user !== window.user){
+        var list = document.getElementById('messages');
+        $(list).append('<p><strong>User: </strong>'+msg.user+'<strong> Message: </strong>'+msg.content+'</p>');
+      }
+    }
+  });
+  </script>
 </body>
 </html>

@@ -1,25 +1,27 @@
 var express = require('express');
 var app = express();
+
 var r = require('rethinkdb');
-var _ = require('lodash');
 var keys = require('./server_keys');
 var pubnub = require("pubnub").init({
     publish_key   : keys.publish_key,
     subscribe_key : keys.subscribe_key
 });
+
 var bodyParser = require('body-parser');
 var port = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
+// here we connect to the database and fetch a changefeed on the todos table
 connect().then(function(conn){
   r.table('todos').changes().run(conn)
   .then(function(cursor){
+    // we call each on the cursor that this query returns and the function that is 
+    // passed into each will be called every time the todos table changes
     cursor.each(function(err, item){
-      console.log('item: ', item);
+      // since we are only concerned with inserts, we only publish new values.
       if(item.new_val !== undefined){
         publish(item.new_val);
       }
@@ -53,6 +55,8 @@ app.get('/all', function(req, res, next){
 
 app.listen(port);
 console.log('server is listening on port',port);
+
+// helper functions
 
 function connect(){
   return r.connect({ host: 'localhost',
